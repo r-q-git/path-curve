@@ -1,225 +1,442 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SVG Shape Generator v5</title>
+    <title>Text Warp</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Bungee+Spice&family=Dancing+Script:wght@400;700&family=Fira+Code:wght@300;500;700&family=Montserrat:wght@100;400;900&family=Playfair+Display:ital,wght@0,400;1,900&family=Roboto:wght@100;400;700&display=swap" rel="stylesheet">
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bungee+Spice&family=Dancing+Script:wght@400;700&family=Fira+Code:wght@300;500;700&family=Montserrat:wght@100;400;900&family=Playfair+Display:ital,wght@0,400;1,900&family=Roboto:wght@100;400;700&family=Pacifico&family=Permanent+Marker&display=swap"
+      rel="stylesheet"
+    />
     <style>
-        #sidebar { transition: transform 0.3s ease-in-out; }
-        .sidebar-hidden { transform: translateX(-100%); width: 0 !important; padding: 0 !important; overflow: hidden; }
-        /* Prevent layout shift during font loading */
-        .svg-text { white-space: pre; }
+      .no-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+      .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+      .shape-active {
+        border-color: #3b82f6 !important;
+        background-color: #eff6ff;
+      }
+      @media (min-width: 1024px) {
+        #sidebarCanvas {
+          display: none;
+        }
+        #mainCanvas {
+          display: flex;
+        }
+      }
+      @media (max-width: 1023px) {
+        #sidebarCanvas {
+          display: block;
+        }
+        #mainCanvas {
+          display: none;
+        }
+      }
+      .canvas-target svg {
+        max-width: 100%;
+        max-height: 100%;
+        height: auto;
+      }
     </style>
   </head>
-  <body class="bg-gray-100 h-screen w-screen flex overflow-hidden font-sans relative">
+  <body class="bg-slate-50 h-screen w-screen flex overflow-hidden font-sans">
+    <aside
+      id="sidebar"
+      class="w-80 bg-white shadow-xl flex flex-col h-full z-40 border-r border-slate-200"
+    >
+      <div id="sidebarCanvas" class="p-1 border-b border-slate-100 bg-slate-50">
+        <div
+          class="canvas-target w-full aspect-square bg-white rounded-xl shadow-inner border border-slate-200 flex items-center justify-center overflow-hidden"
+        ></div>
+      </div>
 
-    <button onclick="toggleSidebar()" class="fixed top-4 left-4 z-50 bg-white p-2 rounded-md shadow-md hover:bg-gray-100 border border-gray-200">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-        </svg>
-    </button>
-
-    <div class="fixed top-4 right-4 z-50 flex flex-col items-end gap-2">
-        <button onclick="copyToClipboard()" class="flex items-center gap-2 bg-gray-900 text-white px-6 py-3 rounded-lg hover:bg-black transition-all shadow-lg active:scale-95">
-          <span>Copy Base64</span>
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor font-bold"><path d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
-        </button>
-        <span id="copyFeedback" class="text-green-600 font-bold opacity-0 transition-opacity bg-white/80 px-2 py-1 rounded shadow-sm">✓ Copied</span>
-    </div>
-
-    <aside id="sidebar" class="w-80 bg-white shadow-2xl p-6 pt-16 flex flex-col gap-4 overflow-y-auto h-full z-40">
-      <div class="space-y-4">
-        
+      <div class="flex-1 overflow-y-auto p-5 space-y-6">
         <div>
-          <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Custom Text</label>
-          <input type="text" id="userInput" value="Design Your Text Path" class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-blue-400 outline-none"/>
+          <label class="block text-xs font-bold uppercase text-gray-500 mb-2"
+            >Text Content</label
+          >
+          <textarea
+            id="userInput"
+            rows="2"
+            class="w-full border-2 border-slate-100 rounded-xl p-3 text-sm focus:border-blue-400 outline-none transition-all resize-none"
+          >
+DESIGN EVERYTHING HERE</textarea
+          >
         </div>
 
         <div>
-          <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Font Family</label>
-          <select id="fontFamily" class="w-full border rounded p-2 text-sm bg-white">
-            <option value="sans-serif">System Sans</option>
-            <option value="'Roboto', sans-serif">Roboto (Clean)</option>
-            <option value="'Montserrat', sans-serif">Montserrat (Modern)</option>
-            <option value="'Playfair Display', serif">Playfair (Elegant)</option>
-            <option value="'Dancing Script', cursive">Dancing Script (Script)</option>
-            <option value="'Fira Code', monospace">Fira Code (Monospace)</option>
-            <option value="'Bungee Spice', cursive">Bungee Spice (Graphic)</option>
-          </select>
+          <label class="block text-xs font-bold uppercase text-gray-500 mb-2"
+            >Shape</label
+          >
+          <div
+            id="shapeCarousel"
+            class="flex gap-3 overflow-x-auto no-scrollbar py-2 snap-x scroll-smooth"
+          ></div>
         </div>
 
-        <div class="grid grid-cols-2 gap-3">
+        <div class="space-y-4">
           <div>
-            <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Color</label>
-            <input type="color" id="textColor" value="#1e293b" class="w-full h-10 border rounded cursor-pointer"/>
+            <label class="block text-xs font-bold uppercase text-gray-500 mb-1"
+              >Font Family</label
+            >
+            <select
+              id="fontFamily"
+              class="w-full border-2 border-slate-100 rounded-xl p-2 text-sm bg-white"
+            ></select>
           </div>
-          <div>
-            <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Font Size</label>
-            <input type="number" id="textSize" value="24" class="w-full border rounded p-2 text-sm"/>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label
+                class="block text-xs font-bold uppercase text-gray-500 mb-1"
+                >Size (px)</label
+              >
+              <input
+                type="number"
+                id="fontSize"
+                value="26"
+                class="w-full border-2 border-slate-100 rounded-xl p-2 text-sm font-bold"
+              />
+            </div>
+            <div>
+              <label
+                class="block text-xs font-bold uppercase text-gray-500 mb-1"
+                >Color</label
+              >
+              <input
+                type="color"
+                id="textColor"
+                value="#0f172a"
+                class="w-full h-[38px] border-2 border-slate-100 rounded-xl cursor-pointer p-1 bg-white"
+              />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label
+                class="block text-xs font-bold uppercase text-gray-500 mb-1"
+                >Weight</label
+              >
+              <select
+                id="fontWeight"
+                class="w-full border-2 border-slate-100 rounded-xl p-2 text-sm bg-white"
+              >
+                <option value="100">Thin</option>
+                <option value="300">Light</option>
+                <option value="400" selected>Regular</option>
+                <option value="700">Bold</option>
+                <option value="900">Black</option>
+              </select>
+            </div>
+            <div>
+              <label
+                class="block text-xs font-bold uppercase text-gray-500 mb-1"
+                >Style</label
+              >
+              <select
+                id="fontStyle"
+                class="w-full border-2 border-slate-100 rounded-xl p-2 text-sm bg-white"
+              >
+                <option value="normal">Normal</option>
+                <option value="italic">Italic</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label
+                class="block text-xs font-bold uppercase text-gray-500 mb-1"
+                >Decoration</label
+              >
+              <select
+                id="textDecoration"
+                class="w-full border-2 border-slate-100 rounded-xl p-2 text-sm bg-white"
+              >
+                <option value="none">None</option>
+                <option value="underline">Underline</option>
+                <option value="overline">Overline</option>
+                <option value="line-through">Strike</option>
+              </select>
+            </div>
+            <div>
+              <label
+                class="block text-xs font-bold uppercase text-gray-500 mb-1"
+                >Anchor</label
+              >
+              <select
+                id="textAnchor"
+                class="w-full border-2 border-slate-100 rounded-xl p-2 text-sm bg-white"
+              >
+                <option value="start">Start</option>
+                <option value="middle" selected>Middle</option>
+                <option value="end">End</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label
+                class="block text-xs font-bold uppercase text-gray-500 mb-1"
+                >Offset (%)</label
+              >
+              <input
+                type="number"
+                id="startOffset"
+                value="50"
+                class="w-full border-2 border-slate-100 rounded-xl p-2 text-sm"
+              />
+            </div>
+            <div>
+              <label
+                class="block text-xs font-bold uppercase text-gray-500 mb-1"
+                >Shift (dy)</label
+              >
+              <input
+                type="number"
+                id="baselineShift"
+                value="0"
+                step="1"
+                class="w-full border-2 border-slate-100 rounded-xl p-2 text-sm"
+              />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label
+                class="block text-xs font-bold uppercase text-gray-500 mb-1"
+                >Letter Spacing</label
+              >
+              <input
+                type="number"
+                id="letterSpacing"
+                value="0.5"
+                step="0.5"
+                class="w-full border-2 border-slate-100 rounded-xl p-2 text-sm"
+              />
+            </div>
+            <div>
+              <label
+                class="block text-xs font-bold uppercase text-gray-500 mb-1"
+                >Word Spacing</label
+              >
+              <input
+                type="number"
+                id="wordSpacing"
+                value="4"
+                step="1"
+                class="w-full border-2 border-slate-100 rounded-xl p-2 text-sm"
+              />
+            </div>
           </div>
         </div>
+        <div class="flex flex-col items-start justify-center gap-4">
+          <label class="block text-xs font-bold uppercase text-gray-500 mb-1"
+            >Export & Dimensions</label
+          >
 
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Letter Spacing</label>
-            <input type="number" id="letterSpacing" value="0" step="0.5" class="w-full border rounded p-2 text-sm"/>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label
+                class="block text-xs font-bold uppercase text-gray-500 mb-1"
+                >ViewBox W</label
+              >
+              <input
+                type="number"
+                id="vbWidth"
+                value="300"
+                class="w-full border rounded-lg p-1.5 text-xs shadow-sm"
+              />
+            </div>
+            <div>
+              <label
+                class="block text-xs font-bold uppercase text-gray-500 mb-1"
+                >ViewBox H</label
+              >
+              <input
+                type="number"
+                id="vbHeight"
+                value="300"
+                class="w-full border rounded-lg p-1.5 text-xs shadow-sm"
+              />
+            </div>
           </div>
-          <div>
-            <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Word Spacing</label>
-            <input type="number" id="wordSpacing" value="0" step="1" class="w-full border rounded p-2 text-sm"/>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Weight</label>
-            <select id="textWeight" class="w-full border rounded p-2 text-sm">
-              <option value="100">Thin (100)</option>
-              <option value="300">Light (300)</option>
-              <option value="400" selected>Regular (400)</option>
-              <option value="700">Bold (700)</option>
-              <option value="900">Black (900)</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Style</label>
-            <select id="textStyle" class="w-full border rounded p-2 text-sm">
-              <option value="normal">Normal</option>
-              <option value="italic">Italic</option>
-              <option value="oblique">Oblique</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="bg-gray-50 p-3 rounded-lg border border-gray-200">
-          <label class="block text-xs font-bold uppercase text-gray-500 mb-2">Shape Scale</label>
-          <div class="flex items-center gap-3">
-            <input type="range" id="shapeScaleRange" step="0.1" value="1.5" min="0.1" max="10" class="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"/>
-            <input type="number" id="shapeScaleInput" step="0.1" value="1.5" class="w-16 border rounded p-1 text-sm text-center"/>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label
+                class="block text-xs font-bold uppercase text-gray-500 mb-1"
+                >Export px W</label
+              >
+              <input
+                type="number"
+                id="expWidth"
+                value="500"
+                class="w-full border rounded-lg p-1.5 text-xs shadow-sm"
+              />
+            </div>
+            <div>
+              <label
+                class="block text-xs font-bold uppercase text-gray-500 mb-1"
+                >Export px H</label
+              >
+              <input
+                type="number"
+                id="expHeight"
+                value="500"
+                class="w-full border rounded-lg p-1.5 text-xs shadow-sm"
+              />
+            </div>
           </div>
         </div>
       </div>
 
-      <hr class="my-2" />
-
-      <div>
-        <h3 class="text-xs font-bold uppercase text-gray-500 mb-3">Choose Shape</h3>
-        <div id="shapeList" class="grid grid-cols-2 gap-2">
-          <p class="text-xs text-gray-400 italic">Loading...</p>
-        </div>
+      <div class="p-2 border-t border-slate-100 bg-white">
+        <span
+          id="copyFeedback"
+          class="block text-center text-[10px] text-blue-600 font-bold opacity-0 transition-opacity mb-1"
+          >SVG COPIED!</span
+        >
+        <button
+          onclick="copyToClipboard()"
+          class="w-full flex items-center justify-center gap-2 bg-black text-white py-2 rounded-xl transition-all shadow-lg active:scale-95 font-bold"
+        >
+          <span>Copy Base64 SVG</span>
+        </button>
       </div>
     </aside>
 
-    <main class="flex-1 h-full w-full bg-slate-50 flex items-center justify-center p-4">
-      <div id="canvasContainer" class="w-full h-full flex items-center justify-center overflow-hidden transition-all"></div>
+    <main
+      id="mainCanvas"
+      class="flex-1 bg-slate-100 items-center justify-center p-10"
+    >
+      <div
+        class="canvas-target w-[600px] h-[600px] bg-white rounded-3xl shadow-2xl border border-white flex items-center justify-center overflow-hidden p-8"
+      ></div>
     </main>
 
     <script>
-      let shapesData = [];
+      let shapesData = [
+        {
+          id: "circle",
+          name: "Circle",
+          d: "M 150, 150 m -75, 0 a 75,75 0 1,0 150,0 a 75,75 0 1,0 -150,0",
+        },
+        {
+          id: "oval",
+          name: "Oval",
+          d: "M 150, 150 m -100, 0 a 100,50 0 1,0 200,0 a 100,50 0 1,0 -200,0",
+        },
+        {
+          id: "heart",
+          name: "Heart",
+          d: "M150 70 C150 70 135 40 100 40 C60 40 40 80 40 110 C40 150 150 220 150 220 C150 220 260 150 260 110 C260 80 240 40 200 40 C165 40 150 70 150 70 Z",
+        },
+        { id: "wave", name: "Wave", d: "M 50,150 Q 150,50 250,150" },
+        {
+          id: "star",
+          name: "Star",
+          d: "M150 30 L179 111 L265 111 L197 165 L223 250 L150 200 L77 250 L103 165 L35 111 L121 111 Z",
+        },
+      ];
+
+      let fontsData = [
+        { name: "Montserrat", value: "'Montserrat', sans-serif" },
+        { name: "Pacifico", value: "'Pacifico', cursive" },
+        { name: "Bungee Spice", value: "'Bungee Spice', cursive" },
+        { name: "Fira Code", value: "'Fira Code', monospace" },
+      ];
+
       let selectedShapeId = "circle";
 
-      function toggleSidebar() {
-          document.getElementById('sidebar').classList.toggle('sidebar-hidden');
-      }
-
-      // Input Synchronization
-      const scaleRange = document.getElementById("shapeScaleRange");
-      const scaleInput = document.getElementById("shapeScaleInput");
-      scaleRange.addEventListener("input", (e) => { scaleInput.value = e.target.value; updateSVG(); });
-      scaleInput.addEventListener("input", (e) => { scaleRange.value = e.target.value; updateSVG(); });
-
-      async function loadShapes() {
+      async function init() {
         try {
-          const response = await fetch("shapes.json");
-          shapesData = await response.json();
-          renderShapeButtons();
-          updateSVG();
-        } catch (err) {
-          // Robust fallback library
-          shapesData = [
-            { id: "circle", name: "Circle", d: "M 150, 150 m -75, 0 a 75,75 0 1,0 150,0 a 75,75 0 1,0 -150,0" },
-            { id: "oval", name: "Oval", d: "M 150, 150 m -100, 0 a 100,50 0 1,0 200,0 a 100,50 0 1,0 -200,0" },
-            { id: "heart", name: "Heart", d: "M150 70 C150 70 135 40 100 40 C60 40 40 80 40 110 C40 150 150 220 150 220 C150 220 260 150 260 110 C260 80 240 40 200 40 C165 40 150 70 150 70 Z" },
-            { id: "diamond", name: "Diamond", d: "M 150,50 L 250,150 L 150,250 L 50,150 Z" }
-          ];
-          renderShapeButtons();
-          updateSVG();
-        }
+          const s = await fetch("shapes.json");
+          if (s.ok) shapesData = await s.json();
+          const f = await fetch("fonts.json");
+          if (f.ok) fontsData = await f.json();
+        } catch (e) {}
+        renderCarousel();
+        renderFonts();
+        updateSVG();
       }
 
-      function renderShapeButtons() {
-        const container = document.getElementById("shapeList");
-        container.innerHTML = "";
-        shapesData.forEach((shape) => {
-          const btn = document.createElement("button");
-          btn.innerText = shape.name;
-          btn.className = "py-2 px-3 border border-gray-200 rounded-md hover:border-blue-500 hover:bg-blue-50 text-xs font-medium transition-colors bg-white";
-          btn.onclick = () => { selectedShapeId = shape.id; updateSVG(); };
-          container.appendChild(btn);
-        });
+      function renderCarousel() {
+        const c = document.getElementById("shapeCarousel");
+        c.innerHTML = shapesData
+          .map(
+            (s) => `
+                <div onclick="setShape('${s.id}')" class="flex-shrink-0 w-16 h-16 border-2 rounded-lg cursor-pointer flex items-center justify-center p-1.5 transition-all ${s.id === selectedShapeId ? "shape-active" : "border-slate-100 hover:border-slate-300"}">
+                    <svg viewBox="0 0 300 300" class="w-full h-full"><path d="${s.d}" fill="none" stroke="#64748b" stroke-width="12"/></svg>
+                </div>`,
+          )
+          .join("");
+      }
+
+      function setShape(id) {
+        selectedShapeId = id;
+        renderCarousel();
+        updateSVG();
+      }
+      function renderFonts() {
+        document.getElementById("fontFamily").innerHTML = fontsData
+          .map((f) => `<option value="${f.value}">${f.name}</option>`)
+          .join("");
       }
 
       function updateSVG() {
-        const text = document.getElementById("userInput").value;
-        const color = document.getElementById("textColor").value;
-        const size = document.getElementById("textSize").value;
-        const weight = document.getElementById("textWeight").value;
-        const style = document.getElementById("textStyle").value;
-        const font = document.getElementById("fontFamily").value;
-        const lSpacing = document.getElementById("letterSpacing").value;
-        const wSpacing = document.getElementById("wordSpacing").value;
-        const scale = scaleInput.value || 1;
-
-        const shape = shapesData.find((s) => s.id === selectedShapeId) || shapesData[0];
-
-        const svgHtml = `
-            <svg id="mainSvg" viewBox="0 0 300 300" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
-                <defs>
-                    <path id="pathRef" d="${shape.d}" />
-                </defs>
-                <g transform="scale(${scale}) translate(${150 / scale - 150}, ${150 / scale - 150})">
-                    <path d="${shape.d}" fill="none" stroke="transparent" />
-                    <text 
-                        fill="${color}" 
-                        style="
-                            font-size: ${size}px; 
-                            font-weight: ${weight}; 
-                            font-style: ${style}; 
-                            font-family: ${font};
-                            letter-spacing: ${lSpacing}px;
-                            word-spacing: ${wSpacing}px;
-                        "
-                    >
-                        <textPath href="#pathRef" startOffset="50%" text-anchor="middle">
-                            ${text}
-                        </textPath>
+        const shape = shapesData.find((s) => s.id === selectedShapeId);
+        const svg = `
+                <svg id="mainSvg" viewBox="0 0 ${document.getElementById("vbWidth").value} ${document.getElementById("vbHeight").value}" xmlns="http://www.w3.org/2000/svg">
+                    <defs><path id="p" d="${shape.d}" /></defs>
+                    <text fill="${document.getElementById("textColor").value}" 
+                          text-anchor="${document.getElementById("textAnchor").value}"
+                          style="font-size:${document.getElementById("fontSize").value}px; 
+                                 font-family:${document.getElementById("fontFamily").value}; 
+                                 font-weight:${document.getElementById("fontWeight").value}; 
+                                 font-style:${document.getElementById("fontStyle").value}; 
+                                 text-decoration:${document.getElementById("textDecoration").value}; 
+                                 letter-spacing:${document.getElementById("letterSpacing").value}px; 
+                                 word-spacing:${document.getElementById("wordSpacing").value}px;">
+                        <textPath href="#p" startOffset="${document.getElementById("startOffset").value}%" dy="${document.getElementById("baselineShift").value}">${document.getElementById("userInput").value}</textPath>
                     </text>
-                </g>
-            </svg>
-        `;
-        document.getElementById("canvasContainer").innerHTML = svgHtml;
+                </svg>`;
+        document
+          .querySelectorAll(".canvas-target")
+          .forEach((el) => (el.innerHTML = svg));
       }
 
       function copyToClipboard() {
-        const svgElement = document.getElementById("mainSvg");
-        const svgString = new XMLSerializer().serializeToString(svgElement);
-        const base64 = btoa(unescape(encodeURIComponent(svgString)));
-        navigator.clipboard.writeText(`data:image/svg+xml;base64,${base64}`)
-          .then(() => {
-            const feedback = document.getElementById("copyFeedback");
-            feedback.style.opacity = "1";
-            setTimeout(() => (feedback.style.opacity = "0"), 2000);
-          });
+        const svgEl = document.getElementById("mainSvg").cloneNode(true);
+        svgEl.setAttribute("width", document.getElementById("expWidth").value);
+        svgEl.setAttribute(
+          "height",
+          document.getElementById("expHeight").value,
+        );
+        const b64 = btoa(
+          unescape(
+            encodeURIComponent(new XMLSerializer().serializeToString(svgEl)),
+          ),
+        );
+        navigator.clipboard.writeText(`data:image/svg+xml;base64,${b64}`);
+        document.getElementById("copyFeedback").style.opacity = "1";
+        setTimeout(
+          () => (document.getElementById("copyFeedback").style.opacity = "0"),
+          2000,
+        );
       }
 
-      // Listen for all inputs
-      document.querySelectorAll("input, select").forEach((el) => {
-          el.addEventListener("input", updateSVG);
-      });
-
-      window.onload = loadShapes;
+      document
+        .querySelectorAll("input, select, textarea")
+        .forEach((el) => el.addEventListener("input", updateSVG));
+      window.onload = init;
     </script>
   </body>
 </html>
