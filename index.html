@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SVG Text Warper</title>
+    <title>Wrapsy</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link
       href="https://fonts.googleapis.com/css2?family=Bungee+Spice&family=Fira+Code:wght@300;500;700&family=Montserrat:wght@100;400;900&family=Pacifico&display=swap"
@@ -106,26 +106,22 @@
               </div>
             </div>
           </div>
-          <div class="">
-            <label class="block text-[10px] font-bold uppercase opacity-60 mb-2"
-              >Text Orientation</label
+
+          <div class="flex items-center justify-between rounded-xl py-3">
+            <label
+              class="block text-[10px] font-bold uppercase text-gray-500 mb-1"
+              >Alternating Text Alignment</label
             >
-            <div class="flex gap-2">
-              <button
-                onclick="setTextSide('outside')"
-                id="btnOutside"
-                class="flex-1 py-1.5 rounded-lg text-[10px] font-bold bg-[#ff9100] border"
-              >
-                INSIDE
-              </button>
-              <button
-                onclick="setTextSide('inside')"
-                id="btnInside"
-                class="flex-1 py-1.5 rounded-lg text-[10px] font-bold border"
-              >
-                OUTSIDE
-              </button>
-            </div>
+            <button
+              id="orientationToggle"
+              onclick="toggleTextSide()"
+              class="w-12 h-6 bg-slate-200 rounded-full relative transition-all duration-300"
+            >
+              <div
+                id="orientationCircle"
+                class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-all duration-300 shadow-sm"
+              ></div>
+            </button>
           </div>
 
           <div>
@@ -165,6 +161,7 @@
               >
                 <option value="normal" selected>Normal</option>
                 <option value="italic">Italic</option>
+                <option value="oblique">Oblique</option>
               </select>
             </div>
           </div>
@@ -178,7 +175,8 @@
               <input
                 type="number"
                 id="fontSize"
-                value="18"
+                value="14"
+                min="1"
                 class="w-full border-2 border-slate-100 rounded-xl p-2 text-sm"
               />
             </div>
@@ -209,6 +207,7 @@
                 id="letterSpacing"
                 value="1"
                 step="0.5"
+                min="0.5"
                 class="w-full border-2 border-slate-100 rounded-xl p-2 text-sm"
               />
             </div>
@@ -222,6 +221,7 @@
                 id="wordSpacing"
                 value="1"
                 step="0.5"
+                min="0.5"
                 class="w-full border-2 border-slate-100 rounded-xl p-2 text-sm"
               />
             </div>
@@ -236,8 +236,9 @@
               <input
                 type="number"
                 id="strokeWidth"
-                value="2"
+                value="1"
                 step="0.1"
+                min="0.1"
                 class="w-full border-2 border-slate-100 rounded-xl p-2 text-sm"
               />
             </div>
@@ -281,6 +282,7 @@
                 type="number"
                 id="vbWidth"
                 value="300"
+                step="50"
                 class="w-full border rounded-lg p-1.5 text-xs"
               />
             </div>
@@ -290,30 +292,33 @@
                 type="number"
                 id="vbHeight"
                 value="300"
+                step="50"
                 class="w-full border rounded-lg p-1.5 text-xs"
               />
             </div>
           </div>
 
           <label class="block text-xs font-bold uppercase text-gray-500 mt-2"
-            >Export Size (Physical)</label
+            >Export Size</label
           >
           <div class="grid grid-cols-2 gap-2">
             <div>
-              <span class="text-[10px] text-gray-400">Width (px)</span
+              <span class="text-[10px] text-gray-400">Width</span
               ><input
                 type="number"
                 id="exportWidth"
                 value="800"
+                step="50"
                 class="w-full border rounded-lg p-1.5 text-xs"
               />
             </div>
             <div>
-              <span class="text-[10px] text-gray-400">Height (px)</span
+              <span class="text-[10px] text-gray-400">Height</span
               ><input
                 type="number"
                 id="exportHeight"
                 value="800"
+                step="50"
                 class="w-full border rounded-lg p-1.5 text-xs"
               />
             </div>
@@ -361,7 +366,7 @@
           </button>
         </div>
       </div>
-      <input type="hidden" id="userInput" value="Edit this text" />
+      <input type="hidden" id="userInput" value="Click Here To Edit!" />
     </main>
 
     <script>
@@ -397,13 +402,30 @@
         updateSVG();
       }
 
+      function toggleTextSide() {
+        textSide = textSide === "outside" ? "inside" : "outside";
+
+        const toggleBtn = document.getElementById("orientationToggle");
+        const circle = document.getElementById("orientationCircle");
+
+        if (textSide === "inside") {
+          toggleBtn.style.backgroundColor = "#ff9100";
+          circle.style.left = "24px";
+        } else {
+          toggleBtn.style.backgroundColor = "#cbd5e1";
+          circle.style.left = "4px";
+        }
+
+        updateSVG();
+      }
+
       function updateSVG() {
         const shape = shapesData.find((s) => s.id === selectedShapeId) || {
           d: "",
         };
         const vw = document.getElementById("vbWidth").value;
         const vh = document.getElementById("vbHeight").value;
-        const baseline = textSide === "inside" ? "hanging" : "auto";
+        const baseline = textSide === "outside" ? "hanging" : "auto";
 
         // Path Style Logic
         const pColor = document.getElementById("pathColor").value;
@@ -490,7 +512,7 @@
       function togglePath() {
         showPath = !showPath;
         document.getElementById("pathToggle").style.backgroundColor = showPath
-          ? "#3b82f6"
+          ? "#ff9100"
           : "#cbd5e1";
         document.getElementById("toggleCircle").style.right = showPath
           ? "4px"
