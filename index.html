@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SVG Text Warper Pro</title>
+    <title>SVG Text Warper</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link
       href="https://fonts.googleapis.com/css2?family=Bungee+Spice&family=Fira+Code:wght@300;500;700&family=Montserrat:wght@100;400;900&family=Pacifico&display=swap"
@@ -38,7 +38,7 @@
       id="sidebar"
       class="w-80 bg-white shadow-xl flex flex-col h-full z-40 border-r border-slate-200"
     >
-      <div class="flex-1 overflow-y-auto p-5 space-y-6 no-scrollbar">
+      <div class="flex-1 overflow-y-auto p-6 space-y-6">
         <div>
           <label class="block text-xs font-bold uppercase text-gray-500 mb-2"
             >Shapes</label
@@ -74,6 +74,37 @@
                 class="absolute right-1 top-1 w-4 h-4 bg-white rounded-full transition-all"
               ></div>
             </button>
+          </div>
+
+          <div id="pathSettings" class="space-y-3 pt-2">
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label
+                  class="block text-[10px] font-bold uppercase text-gray-500 mb-1"
+                  >Path Color</label
+                >
+                <input
+                  type="color"
+                  id="pathColor"
+                  value="#ff9100"
+                  class="w-full h-[34px] border-2 border-slate-100 rounded-lg cursor-pointer p-1 bg-white"
+                />
+              </div>
+              <div>
+                <label
+                  class="block text-[10px] font-bold uppercase text-gray-500 mb-1"
+                  >Stroke Type</label
+                >
+                <select
+                  id="pathStrokeType"
+                  class="w-full border-2 border-slate-100 rounded-lg p-1.5 text-xs bg-white"
+                >
+                  <option value="solid" selected>Solid</option>
+                  <option value="dashed">Dashed</option>
+                  <option value="dotted">Dotted</option>
+                </select>
+              </div>
+            </div>
           </div>
           <div class="">
             <label class="block text-[10px] font-bold uppercase opacity-60 mb-2"
@@ -291,7 +322,7 @@
       </div>
 
       <div
-        class="p-2 border-t border-slate-100 bg-white  flex items-center justify-center gap-2"
+        class="p-2 border-t border-slate-100 bg-white flex items-center justify-center gap-2"
       >
         <button
           onclick="downloadSVG()"
@@ -374,10 +405,17 @@
         const vh = document.getElementById("vbHeight").value;
         const baseline = textSide === "inside" ? "hanging" : "auto";
 
+        // Path Style Logic
+        const pColor = document.getElementById("pathColor").value;
+        const pType = document.getElementById("pathStrokeType").value;
+        let dashArray = "0";
+        if (pType === "dashed") dashArray = "8,4";
+        if (pType === "dotted") dashArray = "2,4";
+
         const svg = `
           <svg id="mainSvg" width="100%" height="100%" viewBox="0 0 ${vw} ${vh}" xmlns="http://www.w3.org/2000/svg">
             <defs><path id="warp_path" d="${shape.d}" /></defs>
-            <path id="guide" d="${shape.d}" fill="none" stroke="#ff9100" stroke-width="1" stroke-dasharray="0" style="display: ${showPath ? "block" : "none"}" />
+            <path id="guide" d="${shape.d}" fill="none" stroke="${pColor}" stroke-width="1" stroke-dasharray="${dashArray}" style="display: ${showPath ? "block" : "none"}" />
             <text fill="${document.getElementById("textColor").value}" 
                   stroke="${document.getElementById("textColor").value}"
                   stroke-width="${document.getElementById("strokeWidth").value}"
